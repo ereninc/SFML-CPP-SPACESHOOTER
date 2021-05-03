@@ -69,6 +69,11 @@ public:
     {
         return sf::Vector2f(player.getPosition());
     }
+
+    sf::Sprite PlayerSpriteGetir() 
+    {
+        return sf::Sprite(player);
+    }
 };
 
 class Bullet 
@@ -124,7 +129,17 @@ public:
 
     sf::Vector2f EnemyBulletPozisyonAl()
     {
-        return sf::Vector2f(bullet.getPosition());
+        return sf::Vector2f(enemyBullet.getPosition());
+    }
+
+    sf::Sprite PlayerBulletSpriteGetir()
+    {
+        return sf::Sprite(bullet);
+    }
+
+    sf::Sprite EnemyBulletSpriteGetir()
+    {
+        return sf::Sprite(enemyBullet);
     }
 };
 
@@ -164,10 +179,20 @@ public:
     void kucukDusmanAyarla()
     {
         kucukDusman.setTexture(kucukDusmanTextures[kucukDusmanAnimFrame]);
-        kucukDusman.setTextureRect(sf::IntRect(73.0, 32.0f, 478.0f, 515.0f));
+        kucukDusman.setTextureRect(sf::IntRect(73.0f, 32.0f, 478.0f, 515.0f));
         kucukDusman.setScale(0.125f, 0.125f);
         kucukDusman.setRotation(180.0f);
         kucukDusman.setPosition(pos[rand()%30], -100.0f);
+    }
+
+    void YarasaDusmanAyarla() 
+    {
+        yarasaDusman.setTexture(yarasaDusmanTextures[yarasaDusmanAnimFrame]);
+        yarasaDusman.setTextureRect(sf::IntRect(65.0f, 62.0f, 375.0f, 392.0f));
+        yarasaDusman.setScale(0.125f, 0.125f);
+        yarasaDusman.setRotation(180.0f);
+        srand(time(NULL));
+        yarasaDusman.setPosition(pos[rand() % 30], -150.0f);
     }
 
     void KucukDusmanAnimasyon()
@@ -177,14 +202,158 @@ public:
         kucukDusman.setTexture(kucukDusmanTextures[kucukDusmanAnimFrame]);
     }
 
+    void YarasaDusmanAnimasyon() 
+    {
+        yarasaDusmanAnimFrame += 1;
+        yarasaDusmanAnimFrame = yarasaDusmanAnimFrame % 4;
+        yarasaDusman.setTexture(yarasaDusmanTextures[yarasaDusmanAnimFrame]);
+    }
+
     void KucukDusmanHareket(int hiz) 
     {
         kucukDusman.setPosition(kucukDusman.getPosition().x, kucukDusman.getPosition().y + hiz);
     }
 
+    void YarasaDusmanHareket(int hiz) 
+    {
+        yarasaDusman.setPosition(yarasaDusman.getPosition().x, yarasaDusman.getPosition().y + hiz);
+    }
+
     sf::Vector2f KucukDusmanPozisyonAl() 
     {
         return sf::Vector2f(kucukDusman.getPosition());
+    }
+
+    sf::Vector2f YarasaDusmanPozisyonAl() 
+    {
+        return sf::Vector2f(yarasaDusman.getPosition());
+    }
+
+    sf::Sprite KucukDusmanSpriteGetir() 
+    {
+        return sf::Sprite(kucukDusman);
+    }
+
+    sf::Sprite YarasaDusmanSpriteGetir() 
+    {
+        return sf::Sprite(yarasaDusman);
+    }
+};
+
+class UzayObjeleri 
+{
+public:
+    sf::Texture istasyon[3];
+    sf::Texture bomba[3];
+    sf::Texture mayin[2];
+    sf::Sprite istasyonS;
+    sf::Sprite bombaS;
+    sf::Sprite mayinS;
+    int istasyonAnimFrame = 0;
+    int bombaAnimFrame = 0;
+    int mayinAnimFrame = 0;
+
+    int pos[30] =
+    {
+        50, 60, 70, 80, 90, 100,110,120,130,140,
+        150,160,170,180,190,200,210,220,230,240,
+        250,260,270,280,290,300,310,320,330,340
+    };
+
+    void ImportImages()
+    {
+        istasyon[0].loadFromFile("resimler/uzay/comm/1.png");
+        istasyon[1].loadFromFile("resimler/uzay/comm/2.png");
+        istasyon[2].loadFromFile("resimler/uzay/comm/3.png");
+        bomba[0].loadFromFile("resimler/uzay/Spacebombs/1.png");
+        bomba[1].loadFromFile("resimler/uzay/Spacebombs/2.png");
+        bomba[2].loadFromFile("resimler/uzay/Spacebombs/3.png");
+        mayin[0].loadFromFile("resimler/uzay/Spacemines/1.png");
+        mayin[1].loadFromFile("resimler/uzay/Spacemines/2.png");
+    }
+
+    void IstasyonAyarla() 
+    {
+        istasyonS.setTexture(istasyon[istasyonAnimFrame]);
+        istasyonS.setTextureRect(sf::IntRect(234, 228, 579, 567));
+        istasyonS.setScale(0.15f, 0.15f);
+        istasyonS.setPosition(pos[rand() % 30], -130.0f);
+    }
+
+    void BombaAyarla() 
+    {
+        bombaS.setTexture(bomba[bombaAnimFrame]);
+        bombaS.setTextureRect(sf::IntRect(55, 64, 156, 113));
+        bombaS.setScale(0.15f, 0.15f);
+        bombaS.setPosition(pos[rand() % 30], -140.0f);
+    }
+
+    void MayinAyarla() 
+    {
+        mayinS.setTexture(mayin[mayinAnimFrame]);
+        mayinS.setTextureRect(sf::IntRect(9, 12.0f, 230, 227));
+        mayinS.setScale(0.15f, 0.15f);
+        mayinS.setPosition(pos[rand() % 30], -110.0f);
+    }
+
+    void Animasyon()
+    {
+        istasyonAnimFrame += 1;
+        istasyonAnimFrame = istasyonAnimFrame % 3;
+        istasyonS.setTexture(istasyon[istasyonAnimFrame]);
+
+        bombaAnimFrame += 1;
+        bombaAnimFrame = bombaAnimFrame % 3;
+        bombaS.setTexture(bomba[bombaAnimFrame]);
+
+        mayinAnimFrame += 1;
+        mayinAnimFrame = mayinAnimFrame % 2;
+        mayinS.setTexture(mayin[mayinAnimFrame]);
+    }
+
+    void IstasyonHareket(int hiz)
+    {
+        istasyonS.setPosition(istasyonS.getPosition().x, istasyonS.getPosition().y + hiz);
+    }
+
+    void BombaHareket(int hiz)
+    {
+        bombaS.setPosition(bombaS.getPosition().x, bombaS.getPosition().y + hiz);
+    }
+
+    void MayinHareket(int hiz)
+    {
+        mayinS.setPosition(mayinS.getPosition().x, mayinS.getPosition().y + hiz);
+    }
+
+    sf::Vector2f IstasyonPozisyon()
+    {
+        return sf::Vector2f(istasyonS.getPosition());
+    }
+
+    sf::Vector2f BombaPozisyon()
+    {
+        return sf::Vector2f(bombaS.getPosition());
+    }
+
+    sf::Vector2f MayinPozisyon()
+    {
+        return sf::Vector2f(mayinS.getPosition());
+    }
+
+    sf::Sprite IstasyonSpriteGetir() 
+    {
+        return sf::Sprite(istasyonS);
+    }
+
+    sf::Sprite BombaSpriteGetir() 
+    {
+        return sf::Sprite(bombaS);
+    }
+
+    sf::Sprite MayinSpriteGetir() 
+    {
+        return sf::Sprite(mayinS);
     }
 };
 
@@ -201,7 +370,7 @@ int main()
 
     Bullet bullet;
     bullet.PlayerBulletAyarla();
-    float mermiHizi = 8.0f;
+    float mermiHizi = 10;
 
     Dusman kucukDusman;
     kucukDusman.ImportImages();
@@ -209,6 +378,25 @@ int main()
 
     Bullet enemyBullet;
     enemyBullet.EnemyBulletAyarla();
+
+    Dusman yarasaDusman;
+    yarasaDusman.ImportImages();
+    yarasaDusman.YarasaDusmanAyarla();
+
+    Bullet yarasaDusmanBullet;
+    yarasaDusmanBullet.EnemyBulletAyarla();
+
+    UzayObjeleri istasyon;
+    istasyon.ImportImages();
+    istasyon.IstasyonAyarla();
+
+    UzayObjeleri bomba;
+    bomba.ImportImages();
+    bomba.BombaAyarla();
+
+    UzayObjeleri mayin;
+    mayin.ImportImages();
+    mayin.MayinAyarla();
 
     while (window.isOpen())
     {
@@ -239,12 +427,41 @@ int main()
 
         kucukDusman.KucukDusmanHareket(2);
         kucukDusman.KucukDusmanAnimasyon();
-        enemyBullet.EnemyBulletHareket(mermiHizi);
+        enemyBullet.EnemyBulletHareket(mermiHizi/2);
+
+        yarasaDusman.YarasaDusmanHareket(3);
+        yarasaDusman.YarasaDusmanAnimasyon();
+        yarasaDusmanBullet.EnemyBulletHareket(mermiHizi * 0.75f);
+
+        istasyon.IstasyonHareket(1);
+        istasyon.Animasyon();
+
+        bomba.BombaHareket(1.5);
+        bomba.Animasyon();
+
+        mayin.MayinHareket(1);
+        mayin.Animasyon();
+
+        if (istasyon.IstasyonPozisyon().y >= 725)
+        {
+            istasyon.IstasyonAyarla();
+        }
+
+        if (bomba.BombaPozisyon().y >= 725)
+        {
+            bomba.BombaAyarla();
+        }
+
+        if (mayin.MayinPozisyon().y >= 725)
+        {
+            mayin.MayinAyarla();
+        }
 
         auto kucukDusmanPos = kucukDusman.KucukDusmanPozisyonAl();
         if (kucukDusmanPos.y >= 750)
         {
             kucukDusman.kucukDusmanAyarla();
+            yarasaDusman.YarasaDusmanAyarla();
             saat.restart();
         }
         else if (kucukDusmanPos.y <= 740)
@@ -258,16 +475,29 @@ int main()
                     enemyBullet.EnemyBulletPozisyonAyarla(kucukDusman.kucukDusman.getPosition().x-22.5f, 
                         kucukDusman.kucukDusman.getPosition().y-5.0f);
                     enemyBullet.EnemyBulletAyarla();
+
+                    yarasaDusmanBullet.EnemyBulletPozisyonAyarla(yarasaDusman.yarasaDusman.getPosition().x - 22.5f,
+                        yarasaDusman.yarasaDusman.getPosition().y - 5.0f);
+                    yarasaDusmanBullet.EnemyBulletAyarla();
                 }
                 saat.restart();
             }
         }
 
         window.clear(sf::Color::Black);
+
         window.draw(player.player);
         window.draw(bullet.bullet);
+
         window.draw(kucukDusman.kucukDusman);
         window.draw(enemyBullet.enemyBullet);
+
+        window.draw(yarasaDusman.yarasaDusman);
+        window.draw(yarasaDusmanBullet.enemyBullet);
+
+        window.draw(istasyon.istasyonS);
+        window.draw(bomba.bombaS);
+        window.draw(mayin.mayinS);
         window.display();
     }
     return 0;
