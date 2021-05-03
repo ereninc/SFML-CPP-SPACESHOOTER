@@ -357,6 +357,57 @@ public:
     }
 };
 
+class PatlamaEfekti 
+{
+public:
+    sf::Texture efekt[17];
+    sf::Sprite efektS;
+    int animasyonIndex = 0;
+
+    void ImportImages() 
+    {
+        efekt[0].loadFromFile("resimler/uzay/Effects/1_0.png");
+        efekt[1].loadFromFile("resimler/uzay/Effects/1_1.png");
+        efekt[2].loadFromFile("resimler/uzay/Effects/1_2.png");
+        efekt[3].loadFromFile("resimler/uzay/Effects/1_3.png");
+        efekt[4].loadFromFile("resimler/uzay/Effects/1_4.png");
+        efekt[5].loadFromFile("resimler/uzay/Effects/1_5.png");
+        efekt[6].loadFromFile("resimler/uzay/Effects/1_6.png");
+        efekt[7].loadFromFile("resimler/uzay/Effects/1_7.png");
+        efekt[8].loadFromFile("resimler/uzay/Effects/1_8.png");
+        efekt[9].loadFromFile("resimler/uzay/Effects/1_9.png");
+        efekt[10].loadFromFile("resimler/uzay/Effects/1_10.png");
+        efekt[11].loadFromFile("resimler/uzay/Effects/1_11.png");
+        efekt[12].loadFromFile("resimler/uzay/Effects/1_12.png");
+        efekt[13].loadFromFile("resimler/uzay/Effects/1_13.png");
+        efekt[14].loadFromFile("resimler/uzay/Effects/1_14.png");
+        efekt[15].loadFromFile("resimler/uzay/Effects/1_15.png");
+        efekt[16].loadFromFile("resimler/uzay/Effects/1_16.png");
+    }
+
+    void EfektAyarla()
+    {
+        efektS.setTexture(efekt[animasyonIndex]);
+        efektS.setTextureRect(sf::IntRect(55, 44, 187, 157));
+        efektS.setScale(1.0f, 1.0f);
+    }
+
+    void Animasyon() 
+    {
+        animasyonIndex += 1;
+        animasyonIndex = animasyonIndex % 17;
+        efektS.setTexture(efekt[animasyonIndex]);
+    }
+
+    void PozisyonAyarla(float x, float y) 
+    {
+        efektS.setPosition(x, y);
+    }
+};
+
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(GENISLIK, YUKSEKLIK), "STAR WARS");
@@ -397,6 +448,9 @@ int main()
     UzayObjeleri mayin;
     mayin.ImportImages();
     mayin.MayinAyarla();
+
+    PatlamaEfekti efekt;
+    efekt.ImportImages();
 
     while (window.isOpen())
     {
@@ -441,6 +495,10 @@ int main()
 
         mayin.MayinHareket(1);
         mayin.Animasyon();
+
+        IstasyonCarpismaKontrol(player, istasyon, efekt);
+        BombaCarpismaKontrol(player, bomba, efekt);
+        MayinCarpismaKontrol(player, mayin, efekt);
 
         if (istasyon.IstasyonPozisyon().y >= 725)
         {
@@ -498,7 +556,53 @@ int main()
         window.draw(istasyon.istasyonS);
         window.draw(bomba.bombaS);
         window.draw(mayin.mayinS);
+        window.draw(efekt.efektS);
         window.display();
     }
     return 0;
+}
+
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt)
+{
+    if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.IstasyonSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "ISTASYONA CARPTI" << std::endl;
+        efekt.EfektAyarla();
+        efekt.PozisyonAyarla(player.PlayerPozisyonu().x-25.0f, player.PlayerPozisyonu().y-50.0f);
+        efekt.Animasyon();
+    }
+    else
+    {
+        efekt.efektS.setScale(0, 0);
+    }
+}
+
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt)
+{
+    if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.BombaSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "BOMBAYA CARPTI" << std::endl;
+        efekt.EfektAyarla();
+        efekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        efekt.Animasyon();
+    }
+    else
+    {
+        efekt.efektS.setScale(0, 0);
+    }
+}
+
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt)
+{
+    if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.MayinSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "MAYINA CARPTI" << std::endl;
+        efekt.EfektAyarla();
+        efekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        efekt.Animasyon();
+    }
+    else
+    {
+        efekt.efektS.setScale(0, 0);
+    }
 }
