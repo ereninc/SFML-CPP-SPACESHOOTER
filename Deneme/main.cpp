@@ -10,7 +10,8 @@ public:
     sf::Texture playerTextures[8];
     sf::Sprite player; 
     int xPozisyon = 0;
-    int index = 0; 
+    int index = 0;
+    bool isDead = false;
     
     void ImportImages()
     {
@@ -62,7 +63,10 @@ public:
                 xPozisyon += 5;
             }
         }
-        player.setPosition(150.0f + xPozisyon, 600.0f);
+        if (!isDead)
+        {
+            player.setPosition(150.0f + xPozisyon, 600.0f);
+        }
     }
 
     sf::Vector2f PlayerPozisyonu() 
@@ -73,6 +77,14 @@ public:
     sf::Sprite PlayerSpriteGetir() 
     {
         return sf::Sprite(player);
+    }
+
+    void Ol() 
+    {
+        if (isDead)
+        {
+            player.setPosition(-100, -100);
+        }
     }
 };
 
@@ -275,7 +287,7 @@ public:
     {
         istasyonS.setTexture(istasyon[istasyonAnimFrame]);
         istasyonS.setTextureRect(sf::IntRect(234, 228, 579, 567));
-        istasyonS.setScale(0.15f, 0.15f);
+        istasyonS.setScale(0.11f, 0.11f);
         istasyonS.setPosition(pos[rand() % 30], -130.0f);
     }
 
@@ -283,7 +295,7 @@ public:
     {
         bombaS.setTexture(bomba[bombaAnimFrame]);
         bombaS.setTextureRect(sf::IntRect(55, 64, 156, 113));
-        bombaS.setScale(0.15f, 0.15f);
+        bombaS.setScale(0.35f, 0.35f);
         bombaS.setPosition(pos[rand() % 30], -140.0f);
     }
 
@@ -291,7 +303,7 @@ public:
     {
         mayinS.setTexture(mayin[mayinAnimFrame]);
         mayinS.setTextureRect(sf::IntRect(9, 12.0f, 230, 227));
-        mayinS.setScale(0.15f, 0.15f);
+        mayinS.setScale(0.2f, 0.2f);
         mayinS.setPosition(pos[rand() % 30], -110.0f);
     }
 
@@ -354,6 +366,21 @@ public:
     {
         return sf::Sprite(mayinS);
     }
+
+    void IstasyonPatladi()
+    {
+        istasyonS.setPosition(-100, 800);
+    }
+
+    void BombaPatladi()
+    {
+        bombaS.setPosition(-100, 800);
+    }
+
+    void MayinPatladi()
+    {
+        mayinS.setPosition(-100, 800);
+    }
 };
 
 class PatlamaEfekti 
@@ -404,20 +431,27 @@ public:
     }
 };
 
-void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt);
-void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt);
-void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt);
+#pragma region Çarpýþma Fonksiyon Baþlýklarý
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
 void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt);
 void BulletYarasaDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt);
-void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt);
+void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
+void UzayObjesiIstasyonPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekti& istEfekt);
+void UzayObjesiBombaPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekti& bombEfekt);
+void UzayObjesiMayinPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekti& mayinEfekt);
+#pragma endregion
 
 int main()
 {
     srand(time(nullptr));
-    sf::RenderWindow window(sf::VideoMode(GENISLIK, YUKSEKLIK), "STAR WARS");
+
+#pragma region Nesneler
+    sf::RenderWindow window(sf::VideoMode(GENISLIK, YUKSEKLIK), "SPACE SHOOTER");
     sf::Event event;
     sf::Clock saat;
-    sf::Time zaman;
+    sf::Clock saat2;
 
     Player player;
     player.ImportImages();
@@ -454,9 +488,18 @@ int main()
     mayin.MayinAyarla();
 
     PatlamaEfekti efekt;
+    PatlamaEfekti efekt2;
     PatlamaEfekti playerEfekt;
+    PatlamaEfekti istEfekt;
+    PatlamaEfekti bombEfekt;
+    PatlamaEfekti mayinEfekt;
     efekt.ImportImages();
-    //playerEfekt.ImportImages();
+    efekt2.ImportImages();
+    playerEfekt.ImportImages();
+    istEfekt.ImportImages();
+    bombEfekt.ImportImages();
+    mayinEfekt.ImportImages();
+#pragma endregion
 
     while (window.isOpen())
     {
@@ -470,7 +513,7 @@ int main()
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
             {
-                if (&bullet != NULL)
+                if (&bullet != NULL && !player.isDead)
                 {
                     if (bullet.PlayerBulletPozisyonAl().y <= 0)
                     {
@@ -479,8 +522,16 @@ int main()
                     }
                 }
             }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+            {
+                player.isDead = false;
+                player.PlayerAyarla();
+                window.setTitle("SPACE SHOOTER");
+            }
         }
         
+#pragma region Tanýmlama Fonksiyonlarý
         player.Animasyon();
         player.PlayerHareket();
         bullet.PlayerBulletHareket(-mermiHizi);
@@ -502,13 +553,31 @@ int main()
         mayin.MayinHareket(1);
         mayin.Animasyon();
 
-        IstasyonCarpismaKontrol(player, istasyon, playerEfekt);
-        BombaCarpismaKontrol(player, bomba, playerEfekt);
-        MayinCarpismaKontrol(player, mayin, playerEfekt);
-        BulletKucukDusmanCarpismaKontrol(bullet, kucukDusman, efekt);
+        efekt.Animasyon();
+        efekt2.Animasyon();
+        istEfekt.Animasyon();
+        bombEfekt.Animasyon();
+        mayinEfekt.Animasyon();
+        playerEfekt.Animasyon();
+
+#pragma endregion 
+
+#pragma region ÇarpýþmaTestleri
+
+        IstasyonCarpismaKontrol(player, istasyon, istEfekt, window);
+        BombaCarpismaKontrol(player, bomba, bombEfekt, window);
+        MayinCarpismaKontrol(player, mayin, mayinEfekt, window);
+        BulletKucukDusmanCarpismaKontrol(bullet, kucukDusman, efekt2);
         BulletYarasaDusmanCarpismaKontrol(bullet, yarasaDusman, efekt);
-        EnemyBulletPlayerCarpisma(enemyBullet, player, playerEfekt);
-        EnemyBulletPlayerCarpisma(yarasaDusmanBullet, player, playerEfekt);
+        EnemyBulletPlayerCarpisma(enemyBullet, player, playerEfekt, window);
+        EnemyBulletPlayerCarpisma(yarasaDusmanBullet, player, playerEfekt, window);
+        UzayObjesiIstasyonPatlatma(bullet, istasyon, istEfekt);
+        UzayObjesiBombaPatlatma(bullet, bomba, bombEfekt);
+        UzayObjesiMayinPatlatma(bullet, mayin, mayinEfekt);
+
+#pragma endregion
+
+#pragma region Sahneye Yeniden Giriþ ve Düþman Gemi Ateþi
 
         if (istasyon.IstasyonPozisyon().y >= 725)
         {
@@ -529,7 +598,6 @@ int main()
         if (kucukDusmanPos.y >= 740)
         {
             kucukDusman.kucukDusmanAyarla();
-            yarasaDusman.YarasaDusmanAyarla();
             saat.restart();
         }
         else if (kucukDusmanPos.y <= 740)
@@ -543,15 +611,36 @@ int main()
                     enemyBullet.EnemyBulletPozisyonAyarla(kucukDusman.kucukDusman.getPosition().x-22.5f, 
                         kucukDusman.kucukDusman.getPosition().y-5.0f);
                     enemyBullet.EnemyBulletAyarla();
-
-                    yarasaDusmanBullet.EnemyBulletPozisyonAyarla(yarasaDusman.yarasaDusman.getPosition().x - 22.5f,
-                        yarasaDusman.yarasaDusman.getPosition().y - 5.0f);
-                    yarasaDusmanBullet.EnemyBulletAyarla();
                 }
                 saat.restart();
             }
         }
 
+        auto yarasaDusmanPos = yarasaDusman.YarasaDusmanPozisyonAl();
+        if (yarasaDusmanPos.y >= 740)
+        {
+            yarasaDusman.YarasaDusmanAyarla();
+            saat2.restart();
+        }
+        else if (yarasaDusmanPos.y <= 740)
+        {
+            auto gecenSure2 = saat2.getElapsedTime().asSeconds();
+            if (gecenSure2 > 2.5f)
+            {
+                std::cout << "ATES!" << std::endl;
+                if (&yarasaDusmanBullet != NULL)
+                {
+                    yarasaDusmanBullet.EnemyBulletPozisyonAyarla(yarasaDusman.yarasaDusman.getPosition().x - 22.5f,
+                        yarasaDusman.yarasaDusman.getPosition().y - 5.0f);
+                    yarasaDusmanBullet.EnemyBulletAyarla();
+                }
+                saat2.restart();
+            }
+        }
+
+#pragma endregion 
+
+        
         window.clear(sf::Color::Black);
 
         window.draw(player.player);
@@ -569,65 +658,80 @@ int main()
 
         window.draw(efekt.efektS);
         window.draw(playerEfekt.efektS);
+        window.draw(efekt2.efektS);
+        window.draw(istEfekt.efektS);
+        window.draw(bombEfekt.efektS);
+        window.draw(mayinEfekt.efektS);
+
         window.display();
     }
     return 0;
 }
 
-void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt)
+#pragma region Çarpýþma Kontrol Fonksiyonlarý
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& istEfekt, sf::RenderWindow& window)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.IstasyonSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "ISTASYONA CARPTI" << std::endl;
-        /*playerEfekt.EfektAyarla();
-        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x-25.0f, player.PlayerPozisyonu().y-50.0f);
-        playerEfekt.Animasyon();*/
+        std::cout << "PLAYER ISTASYONA CARPTI" << std::endl;
+        istEfekt.EfektAyarla();
+        istEfekt.PozisyonAyarla(player.PlayerPozisyonu().x-25.0f, player.PlayerPozisyonu().y-50.0f);
+        istEfekt.Animasyon();
+        player.isDead = true;
+        player.Ol();
+        window.setTitle("PRESS R TO RESTART");
     }
     else
     {
-        //playerEfekt.efektS.setScale(0, 0);
+        istEfekt.efektS.setScale(0, 0);
     }
 }
 
-void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt)
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& bombEfekt, sf::RenderWindow& window)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.BombaSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "BOMBAYA CARPTI" << std::endl;
-        /*playerEfekt.EfektAyarla();
-        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
-        playerEfekt.Animasyon();*/
+        std::cout << "PLAYER BOMBAYA CARPTI" << std::endl;
+        bombEfekt.EfektAyarla();
+        bombEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        bombEfekt.Animasyon();
+        player.isDead = true;
+        player.Ol();
+        window.setTitle("PRESS R TO RESTART");
     }
     else
     {
-        //playerEfekt.efektS.setScale(0, 0);
+        bombEfekt.efektS.setScale(0, 0);
     }
 }
 
-void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt)
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& mayinEfekt, sf::RenderWindow& window)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.MayinSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "MAYINA CARPTI" << std::endl;
-        /*playerEfekt.EfektAyarla();
-        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
-        playerEfekt.Animasyon();*/
+        std::cout << "PLAYER MAYINA CARPTI" << std::endl;
+        mayinEfekt.EfektAyarla();
+        mayinEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        mayinEfekt.Animasyon();
+        player.isDead = true;
+        player.Ol();
+        window.setTitle("PRESS R TO RESTART");
     }
     else
     {
-        //playerEfekt.efektS.setScale(0, 0);
+        mayinEfekt.efektS.setScale(0, 0);
     }
 }
 
-void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt)
+void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt2)
 {
     if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.KucukDusmanSpriteGetir().getGlobalBounds()))
     {
         std::cout << "DUSMAN OLDURULDU!" << std::endl;
         bullet.BulletPozisyonAyarla(0.0f, -50.0f);
-        efekt.EfektAyarla();
-        efekt.PozisyonAyarla(dusman.KucukDusmanPozisyonAl().x - 100.0f, dusman.KucukDusmanPozisyonAl().y - 120.0f);
-        efekt.Animasyon();
+        efekt2.EfektAyarla();
+        efekt2.PozisyonAyarla(dusman.KucukDusmanPozisyonAl().x - 100.0f, dusman.KucukDusmanPozisyonAl().y - 120.0f);
+        efekt2.Animasyon();
         sf::Clock zaman;
         if (zaman.getElapsedTime().asSeconds() < 0.5f)
         {
@@ -637,7 +741,7 @@ void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfe
     }
     else
     {
-        efekt.efektS.setScale(0, 0);
+        efekt2.efektS.setScale(0, 0);
     }
 }
 
@@ -663,10 +767,74 @@ void BulletYarasaDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEf
     }
 }
 
-void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt)
+void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt, sf::RenderWindow &window)
 {
     if (enemyBullet.EnemyBulletSpriteGetir().getGlobalBounds().intersects(player.PlayerSpriteGetir().getGlobalBounds()))
     {
         std::cout << "may the force be with you" << std::endl;
+        enemyBullet.EnemyBulletPozisyonAyarla(enemyBullet.EnemyBulletPozisyonAl().x, 1000.0f);
+        playerEfekt.EfektAyarla();
+        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        playerEfekt.Animasyon();
+        player.isDead = true;
+        player.Ol();
+        window.setTitle("PRESS R TO RESTART");
+    }
+    else
+    {
+        playerEfekt.efektS.setScale(0, 0);
     }
 }
+
+void UzayObjesiIstasyonPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekti& istEfekt)
+{
+    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(uzayObj.IstasyonSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "ISTASYON HAVAYA UCTU!" << std::endl;
+        bullet.BulletPozisyonAyarla(0.0f, -50.0f);
+        istEfekt.EfektAyarla();
+        istEfekt.PozisyonAyarla(uzayObj.IstasyonPozisyon().x - 25.0f, uzayObj.IstasyonPozisyon().y - 50.0f);
+        istEfekt.Animasyon();
+        uzayObj.IstasyonPatladi();
+    }
+    else
+    {
+        istEfekt.efektS.setScale(0, 0);
+    }
+}
+
+void UzayObjesiBombaPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekti& bombEfekt)
+{
+    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(uzayObj.BombaSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "BOMBA IMHA EDILDI!" << std::endl;
+        bullet.BulletPozisyonAyarla(0.0f, -50.0f);
+        bombEfekt.EfektAyarla();
+        bombEfekt.PozisyonAyarla(uzayObj.BombaPozisyon().x - 25.0f, uzayObj.BombaPozisyon().y - 50.0f);
+        bombEfekt.Animasyon();
+        uzayObj.BombaPatladi();
+    }
+    else
+    {
+        bombEfekt.efektS.setScale(0, 0);
+    }
+}
+
+void UzayObjesiMayinPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekti& mayinEfekt)
+{
+    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(uzayObj.MayinSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "MAYIN ETKISIZ HALE GETIRILDI!" << std::endl;
+        bullet.BulletPozisyonAyarla(0.0f, -50.0f);
+        mayinEfekt.EfektAyarla();
+        mayinEfekt.PozisyonAyarla(uzayObj.MayinPozisyon().x - 25.0f, uzayObj.MayinPozisyon().y - 50.0f);
+        mayinEfekt.Animasyon();
+        uzayObj.MayinPatladi();
+    }
+    else
+    {
+        mayinEfekt.efektS.setScale(0, 0);
+    }
+}
+
+#pragma endregion
