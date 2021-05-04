@@ -163,6 +163,7 @@ public:
     int yarasaDusmanYPozisyon = 0;
     int yarasaDusmanAnimFrame = 0;
 
+
     void ImportImages()
     {
         kucukDusmanTextures[0].loadFromFile("resimler/uzay/smallship/1.png");
@@ -191,8 +192,7 @@ public:
         yarasaDusman.setTextureRect(sf::IntRect(65.0f, 62.0f, 375.0f, 392.0f));
         yarasaDusman.setScale(0.125f, 0.125f);
         yarasaDusman.setRotation(180.0f);
-        srand(time(NULL));
-        yarasaDusman.setPosition(pos[rand() % 30], -150.0f);
+        yarasaDusman.setPosition(pos[rand() % 30], -100.0f);
     }
 
     void KucukDusmanAnimasyon()
@@ -408,8 +408,11 @@ public:
 void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
 void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
 void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
+void BulletDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman);
+
 int main()
 {
+    srand(time(nullptr));
     sf::RenderWindow window(sf::VideoMode(GENISLIK, YUKSEKLIK), "STAR WARS");
     sf::Event event;
     sf::Clock saat;
@@ -498,7 +501,8 @@ int main()
 
         IstasyonCarpismaKontrol(player, istasyon, efekt);
         BombaCarpismaKontrol(player, bomba, efekt);
-        MayinCarpismaKontrol(player, mayin, efekt);
+        MayinCarpismaKontrol(player, mayin, efekt); 
+        BulletDusmanCarpismaKontrol(bullet, kucukDusman);
 
         if (istasyon.IstasyonPozisyon().y >= 725)
         {
@@ -516,7 +520,7 @@ int main()
         }
 
         auto kucukDusmanPos = kucukDusman.KucukDusmanPozisyonAl();
-        if (kucukDusmanPos.y >= 750)
+        if (kucukDusmanPos.y >= 740)
         {
             kucukDusman.kucukDusmanAyarla();
             yarasaDusman.YarasaDusmanAyarla();
@@ -604,5 +608,14 @@ void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& 
     else
     {
         efekt.efektS.setScale(0, 0);
+    }
+}
+
+void BulletDusmanCarpismaKontrol(Bullet &bullet, Dusman& dusman) 
+{
+    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.KucukDusmanSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "DUSMAN OLDURULDU!" << std::endl;
+        dusman.kucukDusmanAyarla();
     }
 }
