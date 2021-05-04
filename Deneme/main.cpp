@@ -163,7 +163,6 @@ public:
     int yarasaDusmanYPozisyon = 0;
     int yarasaDusmanAnimFrame = 0;
 
-
     void ImportImages()
     {
         kucukDusmanTextures[0].loadFromFile("resimler/uzay/smallship/1.png");
@@ -405,10 +404,12 @@ public:
     }
 };
 
-void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
-void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
-void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt);
-void BulletDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman);
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt);
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt);
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt);
+void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt);
+void BulletYarasaDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt);
+void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt);
 
 int main()
 {
@@ -453,7 +454,9 @@ int main()
     mayin.MayinAyarla();
 
     PatlamaEfekti efekt;
+    PatlamaEfekti playerEfekt;
     efekt.ImportImages();
+    //playerEfekt.ImportImages();
 
     while (window.isOpen())
     {
@@ -499,10 +502,13 @@ int main()
         mayin.MayinHareket(1);
         mayin.Animasyon();
 
-        IstasyonCarpismaKontrol(player, istasyon, efekt);
-        BombaCarpismaKontrol(player, bomba, efekt);
-        MayinCarpismaKontrol(player, mayin, efekt); 
-        BulletDusmanCarpismaKontrol(bullet, kucukDusman);
+        IstasyonCarpismaKontrol(player, istasyon, playerEfekt);
+        BombaCarpismaKontrol(player, bomba, playerEfekt);
+        MayinCarpismaKontrol(player, mayin, playerEfekt);
+        BulletKucukDusmanCarpismaKontrol(bullet, kucukDusman, efekt);
+        BulletYarasaDusmanCarpismaKontrol(bullet, yarasaDusman, efekt);
+        EnemyBulletPlayerCarpisma(enemyBullet, player, playerEfekt);
+        EnemyBulletPlayerCarpisma(yarasaDusmanBullet, player, playerEfekt);
 
         if (istasyon.IstasyonPozisyon().y >= 725)
         {
@@ -560,50 +566,74 @@ int main()
         window.draw(istasyon.istasyonS);
         window.draw(bomba.bombaS);
         window.draw(mayin.mayinS);
+
         window.draw(efekt.efektS);
+        window.draw(playerEfekt.efektS);
         window.display();
     }
     return 0;
 }
 
-void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt)
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.IstasyonSpriteGetir().getGlobalBounds()))
     {
         std::cout << "ISTASYONA CARPTI" << std::endl;
-        efekt.EfektAyarla();
-        efekt.PozisyonAyarla(player.PlayerPozisyonu().x-25.0f, player.PlayerPozisyonu().y-50.0f);
-        efekt.Animasyon();
+        /*playerEfekt.EfektAyarla();
+        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x-25.0f, player.PlayerPozisyonu().y-50.0f);
+        playerEfekt.Animasyon();*/
     }
     else
     {
-        efekt.efektS.setScale(0, 0);
+        //playerEfekt.efektS.setScale(0, 0);
     }
 }
 
-void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt)
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.BombaSpriteGetir().getGlobalBounds()))
     {
         std::cout << "BOMBAYA CARPTI" << std::endl;
-        efekt.EfektAyarla();
-        efekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
-        efekt.Animasyon();
+        /*playerEfekt.EfektAyarla();
+        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        playerEfekt.Animasyon();*/
     }
     else
     {
-        efekt.efektS.setScale(0, 0);
+        //playerEfekt.efektS.setScale(0, 0);
     }
 }
 
-void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& efekt)
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.MayinSpriteGetir().getGlobalBounds()))
     {
         std::cout << "MAYINA CARPTI" << std::endl;
+        /*playerEfekt.EfektAyarla();
+        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        playerEfekt.Animasyon();*/
+    }
+    else
+    {
+        //playerEfekt.efektS.setScale(0, 0);
+    }
+}
+
+void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt)
+{
+    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.KucukDusmanSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "DUSMAN OLDURULDU!" << std::endl;
+        bullet.BulletPozisyonAyarla(0.0f, -50.0f);
         efekt.EfektAyarla();
-        efekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
+        efekt.PozisyonAyarla(dusman.KucukDusmanPozisyonAl().x - 100.0f, dusman.KucukDusmanPozisyonAl().y - 120.0f);
         efekt.Animasyon();
+        sf::Clock zaman;
+        if (zaman.getElapsedTime().asSeconds() < 0.5f)
+        {
+            zaman.restart();
+            dusman.kucukDusmanAyarla();
+        }
     }
     else
     {
@@ -611,11 +641,32 @@ void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& 
     }
 }
 
-void BulletDusmanCarpismaKontrol(Bullet &bullet, Dusman& dusman) 
+void BulletYarasaDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt)
 {
-    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.KucukDusmanSpriteGetir().getGlobalBounds()))
+    if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.YarasaDusmanSpriteGetir().getGlobalBounds()))
     {
         std::cout << "DUSMAN OLDURULDU!" << std::endl;
-        dusman.kucukDusmanAyarla();
+        bullet.BulletPozisyonAyarla(0.0f, -50.0f);
+        efekt.EfektAyarla();
+        efekt.PozisyonAyarla(dusman.YarasaDusmanPozisyonAl().x - 100.0f, dusman.YarasaDusmanPozisyonAl().y - 120.0f);
+        efekt.Animasyon();
+        sf::Clock zaman;
+        if (zaman.getElapsedTime().asSeconds() < 0.5f)
+        {
+            zaman.restart();
+            dusman.YarasaDusmanAyarla();
+        }
+    }
+    else
+    {
+        efekt.efektS.setScale(0, 0);
+    }
+}
+
+void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt)
+{
+    if (enemyBullet.EnemyBulletSpriteGetir().getGlobalBounds().intersects(player.PlayerSpriteGetir().getGlobalBounds()))
+    {
+        std::cout << "may the force be with you" << std::endl;
     }
 }
