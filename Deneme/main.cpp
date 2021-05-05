@@ -12,6 +12,7 @@ public:
     int xPozisyon = 0;
     int index = 0;
     bool isDead = false;
+    sf::Clock saat;
     
     void ImportImages()
     {
@@ -81,9 +82,11 @@ public:
 
     void Ol() 
     {
-        if (isDead)
+        auto gecenSure = saat.getElapsedTime().asSeconds();
+        if (isDead && gecenSure > 0.5f)
         {
             player.setPosition(-100, -100);
+            saat.restart();
         }
     }
 };
@@ -263,6 +266,9 @@ public:
     int istasyonAnimFrame = 0;
     int bombaAnimFrame = 0;
     int mayinAnimFrame = 0;
+    sf::Clock saatI;
+    sf::Clock saatB;
+    sf::Clock saatM;
 
     int pos[30] =
     {
@@ -369,17 +375,29 @@ public:
 
     void IstasyonPatladi()
     {
-        istasyonS.setPosition(-100, 800);
+        auto gecenSure = saatI.getElapsedTime().asSeconds();
+        if (gecenSure > 2)
+        {
+            istasyonS.setPosition(-100, 800);
+        }
     }
 
     void BombaPatladi()
     {
-        bombaS.setPosition(-100, 800);
+        auto gecenSure = saatB.getElapsedTime().asSeconds();
+        if (gecenSure > 2)
+        {
+            bombaS.setPosition(-100, 800);
+        }
     }
 
     void MayinPatladi()
     {
-        mayinS.setPosition(-100, 800);
+        auto gecenSure = saatM.getElapsedTime().asSeconds();
+        if (gecenSure > 2)
+        {
+            mayinS.setPosition(-100, 800);
+        }
     }
 };
 
@@ -432,9 +450,9 @@ public:
 };
 
 #pragma region Çarpýþma Fonksiyon Baþlýklarý
-void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
-void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
-void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window, PatlamaEfekti& istasyonEfekt);
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window, PatlamaEfekti& bombEfekt);
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& playerEfekt, sf::RenderWindow& window, PatlamaEfekti& mayinEfekt);
 void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt);
 void BulletYarasaDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfekti& efekt);
 void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekti& playerEfekt, sf::RenderWindow& window);
@@ -489,6 +507,7 @@ int main()
 
     PatlamaEfekti efekt;
     PatlamaEfekti efekt2;
+
     PatlamaEfekti playerEfekt;
     PatlamaEfekti istEfekt;
     PatlamaEfekti bombEfekt;
@@ -499,6 +518,7 @@ int main()
     istEfekt.ImportImages();
     bombEfekt.ImportImages();
     mayinEfekt.ImportImages();
+
 #pragma endregion
 
     while (window.isOpen())
@@ -553,20 +573,13 @@ int main()
         mayin.MayinHareket(1);
         mayin.Animasyon();
 
-        efekt.Animasyon();
-        efekt2.Animasyon();
-        istEfekt.Animasyon();
-        bombEfekt.Animasyon();
-        mayinEfekt.Animasyon();
-        playerEfekt.Animasyon();
-
 #pragma endregion 
 
 #pragma region ÇarpýþmaTestleri
 
-        IstasyonCarpismaKontrol(player, istasyon, istEfekt, window);
-        BombaCarpismaKontrol(player, bomba, bombEfekt, window);
-        MayinCarpismaKontrol(player, mayin, mayinEfekt, window);
+        IstasyonCarpismaKontrol(player, istasyon, playerEfekt, window, istEfekt);
+        BombaCarpismaKontrol(player, bomba, playerEfekt, window, bombEfekt);
+        MayinCarpismaKontrol(player, mayin, playerEfekt, window, mayinEfekt);
         BulletKucukDusmanCarpismaKontrol(bullet, kucukDusman, efekt2);
         BulletYarasaDusmanCarpismaKontrol(bullet, yarasaDusman, efekt);
         EnemyBulletPlayerCarpisma(enemyBullet, player, playerEfekt, window);
@@ -640,6 +653,10 @@ int main()
 
 #pragma endregion 
 
+        playerEfekt.EfektAyarla();
+        playerEfekt.efektS.setColor(sf::Color::Transparent);
+        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x-35.0f, player.PlayerPozisyonu().y-35.0f);
+        playerEfekt.Animasyon();
         
         window.clear(sf::Color::Black);
 
@@ -669,17 +686,11 @@ int main()
 }
 
 #pragma region Çarpýþma Kontrol Fonksiyonlarý
-void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& istEfekt, sf::RenderWindow& window)
+void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& istEfekt, sf::RenderWindow& window, PatlamaEfekti& playerEfekt)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.IstasyonSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "PLAYER ISTASYONA CARPTI" << std::endl;
-        istEfekt.EfektAyarla();
-        istEfekt.PozisyonAyarla(player.PlayerPozisyonu().x-25.0f, player.PlayerPozisyonu().y-50.0f);
-        istEfekt.Animasyon();
-        player.isDead = true;
-        player.Ol();
-        window.setTitle("PRESS R TO RESTART");
+        std::cout << "Player istasyona girdi" << std::endl;
     }
     else
     {
@@ -687,17 +698,11 @@ void IstasyonCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekt
     }
 }
 
-void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& bombEfekt, sf::RenderWindow& window)
+void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& bombEfekt, sf::RenderWindow& window, PatlamaEfekti& playerEfekt)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.BombaSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "PLAYER BOMBAYA CARPTI" << std::endl;
-        bombEfekt.EfektAyarla();
-        bombEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
-        bombEfekt.Animasyon();
-        player.isDead = true;
-        player.Ol();
-        window.setTitle("PRESS R TO RESTART");
+        std::cout << "Player bombaya girdi" << std::endl;
     }
     else
     {
@@ -705,17 +710,11 @@ void BombaCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& 
     }
 }
 
-void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& mayinEfekt, sf::RenderWindow& window)
+void MayinCarpismaKontrol(Player& player, UzayObjeleri& uzayobj, PatlamaEfekti& mayinEfekt, sf::RenderWindow& window, PatlamaEfekti& playerEfekt)
 {
     if (player.PlayerSpriteGetir().getGlobalBounds().intersects(uzayobj.MayinSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "PLAYER MAYINA CARPTI" << std::endl;
-        mayinEfekt.EfektAyarla();
-        mayinEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
-        mayinEfekt.Animasyon();
-        player.isDead = true;
-        player.Ol();
-        window.setTitle("PRESS R TO RESTART");
+        std::cout << "Player mayina girdi" << std::endl;
     }
     else
     {
@@ -728,6 +727,7 @@ void BulletKucukDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEfe
     if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.KucukDusmanSpriteGetir().getGlobalBounds()))
     {
         std::cout << "DUSMAN OLDURULDU!" << std::endl;
+        efekt2.animasyonIndex = 0;
         bullet.BulletPozisyonAyarla(0.0f, -50.0f);
         efekt2.EfektAyarla();
         efekt2.PozisyonAyarla(dusman.KucukDusmanPozisyonAl().x - 100.0f, dusman.KucukDusmanPozisyonAl().y - 120.0f);
@@ -750,6 +750,7 @@ void BulletYarasaDusmanCarpismaKontrol(Bullet& bullet, Dusman& dusman, PatlamaEf
     if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(dusman.YarasaDusmanSpriteGetir().getGlobalBounds()))
     {
         std::cout << "DUSMAN OLDURULDU!" << std::endl;
+        efekt.animasyonIndex = 0;
         bullet.BulletPozisyonAyarla(0.0f, -50.0f);
         efekt.EfektAyarla();
         efekt.PozisyonAyarla(dusman.YarasaDusmanPozisyonAl().x - 100.0f, dusman.YarasaDusmanPozisyonAl().y - 120.0f);
@@ -771,14 +772,12 @@ void EnemyBulletPlayerCarpisma(Bullet& enemyBullet, Player& player, PatlamaEfekt
 {
     if (enemyBullet.EnemyBulletSpriteGetir().getGlobalBounds().intersects(player.PlayerSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "may the force be with you" << std::endl;
         enemyBullet.EnemyBulletPozisyonAyarla(enemyBullet.EnemyBulletPozisyonAl().x, 1000.0f);
-        playerEfekt.EfektAyarla();
-        playerEfekt.PozisyonAyarla(player.PlayerPozisyonu().x - 25.0f, player.PlayerPozisyonu().y - 50.0f);
-        playerEfekt.Animasyon();
-        player.isDead = true;
-        player.Ol();
-        window.setTitle("PRESS R TO RESTART");
+        playerEfekt.efektS.setColor(sf::Color::White);
+        player.PlayerSpriteGetir().setColor(sf::Color::Transparent);
+        //player.isDead = true;
+        //player.Ol();
+        window.setTitle("YENIDEN BASLAMAK ICIN R TUSUNA BASIN");
     }
     else
     {
@@ -790,7 +789,6 @@ void UzayObjesiIstasyonPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEf
 {
     if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(uzayObj.IstasyonSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "ISTASYON HAVAYA UCTU!" << std::endl;
         bullet.BulletPozisyonAyarla(0.0f, -50.0f);
         istEfekt.EfektAyarla();
         istEfekt.PozisyonAyarla(uzayObj.IstasyonPozisyon().x - 25.0f, uzayObj.IstasyonPozisyon().y - 50.0f);
@@ -807,7 +805,6 @@ void UzayObjesiBombaPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekt
 {
     if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(uzayObj.BombaSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "BOMBA IMHA EDILDI!" << std::endl;
         bullet.BulletPozisyonAyarla(0.0f, -50.0f);
         bombEfekt.EfektAyarla();
         bombEfekt.PozisyonAyarla(uzayObj.BombaPozisyon().x - 25.0f, uzayObj.BombaPozisyon().y - 50.0f);
@@ -824,7 +821,6 @@ void UzayObjesiMayinPatlatma(Bullet& bullet, UzayObjeleri& uzayObj, PatlamaEfekt
 {
     if (bullet.PlayerBulletSpriteGetir().getGlobalBounds().intersects(uzayObj.MayinSpriteGetir().getGlobalBounds()))
     {
-        std::cout << "MAYIN ETKISIZ HALE GETIRILDI!" << std::endl;
         bullet.BulletPozisyonAyarla(0.0f, -50.0f);
         mayinEfekt.EfektAyarla();
         mayinEfekt.PozisyonAyarla(uzayObj.MayinPozisyon().x - 25.0f, uzayObj.MayinPozisyon().y - 50.0f);
